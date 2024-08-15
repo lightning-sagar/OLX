@@ -285,7 +285,7 @@ export default function Multistep() {
                   setProgress(progress - 33.33)
                 }}
                 isDisabled={step === 1}
-                colorScheme="teal"
+                // colorScheme="teal"
                 variant="solid"
                 w="7rem"
                 mr="5%">
@@ -302,7 +302,7 @@ export default function Multistep() {
                     setProgress(progress + 33.33)
                   }
                 }}
-                colorScheme="teal"
+                // colorScheme="teal"
                 variant="outline">
                 Next
               </Button>
@@ -310,7 +310,7 @@ export default function Multistep() {
             {step === 3 ? (
               <Button
                 w="7rem"
-                colorScheme="red"
+                // colorScheme="red"
                 variant="solid"
                 onClick={() => {
                   toast({

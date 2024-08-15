@@ -8,10 +8,12 @@ import userAtom from "./Atoms/userAtom.js"
 import AuthPage from "./Pages/AuthPage.jsx"
 import ProductCard from "./component/ProductCard.jsx"
 import UpdatePage from "./Pages/UpdatePage.jsx"
+import updateAtom from "./Atoms/updateAtom.js"
 
 function App() {
 
   const user = useRecoilValue(userAtom);
+  const update = useRecoilValue(updateAtom)
   console.log(user,"user")
   return (
     <>
@@ -25,9 +27,19 @@ function App() {
         ):
           <HomePage/>
         }/>
-        <Route path="/add/product" element={<ProductCard/>}/>
+        <Route
+            path="/add/product"
+            element={
+              !user ? (
+                <Navigate to="/auth" />
+              ) : update ? (
+                <ProductCard />
+              ) : ( 
+                <UpdatePage />
+              )
+            }
+          />
         <Route path="/auth" element={!user?<AuthPage/>:<Navigate to='/' />}/>
-        <Route path="/:id" element={<UpdatePage/>}/>
         </Routes>
       </Container>
     </>
