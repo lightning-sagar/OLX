@@ -24,6 +24,7 @@ import { useRecoilValue } from 'recoil';
 import updateAtom from '../Atoms/updateAtom';
 import usePreviewImg from '../hooks/usePrevImg';
 import UpdatePage from '../Pages/UpdatePage';
+import { Navigate } from 'react-router-dom';
 
 function ProductCard() {
   const [showUpdatePage, setShowUpdatePage] = useState(false);
@@ -89,7 +90,7 @@ function ProductCard() {
       const data = await res.json();
       console.log(data);
 
-      navigator("/")
+      Navigate("/")
     }
     catch(e){
       console.log(e);
@@ -105,7 +106,7 @@ function ProductCard() {
   const handleRemoveImage = (index) => {
     setImgUrls((prevUrls) => prevUrls.filter((_, i) => i !== index));
   };
-
+  console.log(imgUrls,"imgUrls")
   return (
     <>
       <Modal isOpen={isOpen} onClose={handleModalClose}>

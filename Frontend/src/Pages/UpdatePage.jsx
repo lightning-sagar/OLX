@@ -32,25 +32,25 @@ export default function UpdatePage() {
     address: user.address,
     pincode: user.pincode,
     phone: user.phone,
-    profilePic: user.profilePic || '',   
+    pimage: user.pimage || '',   
   });
   
   const [updating, setUpdating] = useState(false);
   const [redirect, setRedirect] = useState(false);
   const showToast = useShowToast();
   const fileRef = useRef(null);
-  const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg(inputs.profilePic);
+  const { handleImageChange, imgUrl } = usePreviewImg('');
   const [updateUser, setUpdateUser] = useRecoilState(updateAtom);
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [progress, setProgress] = useState(33.33);
 
   useEffect(() => {
-    // Synchronize the imgUrl with the inputs state whenever imgUrl changes
-    if (imgUrl) {
-      setInputs(prevInputs => ({ ...prevInputs, profilePic: imgUrl }));
+    if (imgUrl && imgUrl !== inputs.pimage) {
+      setInputs(prevInputs => ({ ...prevInputs, pimage: imgUrl }));
     }
-  }, [imgUrl]);
+  }, [imgUrl, inputs.pimage]);
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,12 +64,15 @@ export default function UpdatePage() {
     setUpdating(true);
 
     try {
+      console.log('Product details:', inputs, 'Images:', imgUrl);
+
+      
       const res = await fetch(`/api/user/${currentUser._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(inputs),
+        body: JSON.stringify({...inputs,pimage:imgUrl}),
         credentials: 'include',
       });
 
@@ -117,7 +120,15 @@ export default function UpdatePage() {
       onSubmit={handleSubmit}
     >
       <Progress hasStripe value={progress} mb="5%" mx="5%" isAnimated />
-      {step === 1 && <Form1 inputs={inputs} setInputs={setInputs} imgUrl={imgUrl} />}
+      {step === 1 && (
+        <Form1
+          inputs={inputs}
+          setInputs={setInputs}
+          imgUrl={imgUrl}
+          fileRef={fileRef}
+          handleImageChange={handleImageChange}
+        />
+      )}
       {step === 2 && <Form2 inputs={inputs} setInputs={setInputs} />}
       {step === 3 && <Form3 inputs={inputs} setInputs={setInputs} />}
 
@@ -159,25 +170,16 @@ export default function UpdatePage() {
   );
 }
 
-const Form1 = ({ inputs, setInputs, imgUrl }) => {
-  const { handleImageChange } = usePreviewImg(inputs.profilePic);
+const Form1 = ({ inputs, setInputs, imgUrl, fileRef, handleImageChange }) => {
   const [hovered, setHovered] = useState(false);
   const borderColor = useColorModeValue('gray.200', 'gray.700');
 
-  const handleImgChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setInputs((prev) => ({ ...prev, profilePic: imageUrl }));
-      handleImageChange(e);
-    }
-  };
-  
+   
 
   return (
     <Flex alignItems="center">
       <FormControl w="150px" mr={6}>
-        <FormLabel >Profile Picture</FormLabel>
+        <FormLabel>Profile Picture</FormLabel>
         <Box
           position="relative"
           width="150px"
@@ -188,10 +190,10 @@ const Form1 = ({ inputs, setInputs, imgUrl }) => {
           borderColor={borderColor}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          onChange={handleImgChange}
         >
+          {console.log(imgUrl,"imgUrl")}
           <img
-            src={inputs.profilePic || 'https://via.placeholder.com/150'}
+            src={imgUrl || 'https://via.placeholder.com/150'}
             alt="Profile Preview"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -209,7 +211,7 @@ const Form1 = ({ inputs, setInputs, imgUrl }) => {
             >
               <Button
                 colorScheme="teal"
-                onClick={() => document.getElementById('profilePicInput').click()}
+                onClick={() => fileRef.current.click()}
               >
                 Change Picture
               </Button>
@@ -220,8 +222,9 @@ const Form1 = ({ inputs, setInputs, imgUrl }) => {
           type="file"
           id="profilePicInput"
           accept="image/*"
-          onChange={handleImgChange}
+          onChange={handleImageChange}
           display="none"
+          ref={fileRef}
         />
       </FormControl>
 

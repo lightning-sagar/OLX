@@ -11,6 +11,7 @@ import UpdatePage from "./Pages/UpdatePage.jsx"
 import updateAtom from "./Atoms/updateAtom.js"
 import ProductPage from "./Pages/ProductPage.jsx"
 import Cart from "./component/Cart.jsx"
+import ChatPage from "./Pages/ChatPage.jsx"
 
 function App() {
 
@@ -42,8 +43,10 @@ function App() {
               )
             }
           />
+        <Route path="/asdas" element={<UpdatePage/>}/>
         <Route path="/auth" element={!user?<AuthPage/>:<Navigate to='/' />}/>
         <Route path="/product/:pid" element={<ProductPage/>}/>
+        <Route path="/chat" element = {<ChatPage/>}/>
         </Routes>
       </Container>
     </>

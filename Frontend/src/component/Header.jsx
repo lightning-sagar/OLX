@@ -1,3 +1,4 @@
+import { BiChat } from "react-icons/bi"; 
 import { CgDarkMode } from "react-icons/cg"; 
 import { AiFillHome } from "react-icons/ai"; 
 import { IoMdLogOut } from "react-icons/io"; 
@@ -30,6 +31,9 @@ function Header() {
         </Link>
         <Link fontSize={"1.2rem"} as={RouterLink} to="/add/product">
           Add Product
+        </Link>
+        <Link as={RouterLink} to="/chat" ml={4}>
+        <BiChat />
         </Link>
       </Flex>
       

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    image: String,
+    pimage: String,
     username: {
         type: String,
         required: true

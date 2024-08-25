@@ -20,7 +20,7 @@ const signController = async(req, res) => {
             username,
             fname:name,
             lname:"",
-            image:"",
+            pimage:"",
             country:"",
             city:"",
             phone:"",
@@ -94,67 +94,88 @@ const logoutController = async(req,res) => {
 
 const updateController = async (req, res) => {
     try {
-        const { username, fname, lname, email, country, city, phone, address, pincode } = req.body;
-        let { profilePic, password } = req.body;
-
-        const userId = req.user._id;
-
-        // Validate user ID
-        if (req.params.id !== userId.toString()) {
-            return res.status(401).json({ error: "Unauthorized user" });
-        }
-
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
-
-        // Handle password update
-        if (password) {
-            const salt = await bcrypt.genSalt(10);
-            password = await bcrypt.hash(password, salt);
-        }
-
-        // Handle profile picture upload to Cloudinary
-        if (req.file) {
-            if (user.ProfilePic) {
-                await cloudinary.uploader.destroy(user.ProfilePic.split("/").pop().split(".")[0]);
-            }
-            const updateRes = await cloudinary.uploader.upload(req.file.path);
-            profilePic = updateRes.secure_url;
-        }
-
-        // Update user details
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            {
-                fname: fname || user.fname,
-                lname: lname || user.lname,
-                username: username || user.username,
-                email: email || user.email,
-                password: password || user.password,
-                country: country || user.country,
-                city: city || user.city,
-                phone: phone || user.phone,
-                address: address || user.address,
-                pincode: pincode || user.pincode,
-                image: profilePic || user.ProfilePic
-            },
-            { new: true }
-        );
-
-        if (updatedUser) {
-            updatedUser.password = null;
-            return res.status(200).json(updatedUser);
-        } else {
-            return res.status(400).json({ error: "Failed to update user" });
-        }
+      const { username, fname, lname, email, country, city, phone, address, pincode } = req.body;
+      let { password, pimage } = req.body;
+      console.log(pimage,"pimage")
+      const userId = req.user._id;
+  
+      if (req.params.id !== userId.toString()) {
+        return res.status(401).json({ error: 'Unauthorized user' });
+      }
+  
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+  
+      if (password) {
+        const salt = await bcrypt.genSalt(10);
+        password = await bcrypt.hash(password, salt);
+      }
+  
+      if (pimage) {
+        const result = await cloudinary.uploader.upload(pimage);
+        pimage = result.secure_url;
+      } else {
+        pimage = user.pimage;
+      }
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          fname: fname || user.fname,
+          lname: lname || user.lname,
+          username: username || user.username,
+          email: email || user.email,
+          password: password || user.password,
+          country: country || user.country,
+          city: city || user.city,
+          phone: phone || user.phone,
+          address: address || user.address,
+          pincode: pincode || user.pincode,
+          pimage: pimage || user.pimage,
+        },
+        { new: true }
+      );
+      console.log(updatedUser);
+  
+      if (updatedUser) {
+        updatedUser.password = null;
+        return res.status(200).json(updatedUser);
+      } else {
+        return res.status(400).json({ error: 'Failed to update user' });
+      }
     } catch (err) {
-        console.error("Error in update:", err);
-        if (!res.headersSent) {
-            return res.status(500).json({ error: "Internal server error" });
-        }
+      console.error('Error in update:', err);
+      if (!res.headersSent) {
+        return res.status(500).json({ error: 'Internal server error' });
+      }
     }
-};
+  };
+  
 
-export {loginController,signController,logoutController,updateController}
+
+
+const getuserProfile = async (req, res) => {
+    const { query } = req.params;
+  
+    try {
+      let user;
+      if(mongoose.Types.ObjectId.isValid(query)){
+        user = await User.findById(query).select("-password -updatedAt");
+      }
+      else{
+        user = await User.findOne({ username: query }).select("-password -updatedAt");
+      }
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      res.status(200).json(user);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  };
+export {loginController,signController,logoutController,updateController,getuserProfile}
