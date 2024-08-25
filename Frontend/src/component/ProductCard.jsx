@@ -1,332 +1,226 @@
-import { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Progress,
   Box,
-  ButtonGroup,
   Button,
-  Heading,
-  Flex,
   FormControl,
-  GridItem,
   FormLabel,
   Input,
-  Select,
-  SimpleGrid,
-  InputLeftAddon,
-  InputGroup,
-  Textarea,
-  FormHelperText,
-  InputRightElement,
-} from '@chakra-ui/react'
+  Text,
+  Image,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
+  useDisclosure,
+  Grid,
+  GridItem,
+  IconButton,
+} from '@chakra-ui/react';
+import { AddIcon } from '@chakra-ui/icons';
+import { useRecoilValue } from 'recoil';
+import updateAtom from '../Atoms/updateAtom';
+import usePreviewImg from '../hooks/usePrevImg';
+import UpdatePage from '../Pages/UpdatePage';
 
-import { useToast } from '@chakra-ui/react'
+function ProductCard() {
+  const [showUpdatePage, setShowUpdatePage] = useState(false);
+  const [productDetails, setProductDetails] = useState({
+    name: '',
+    price: '',
+    description: '',
+    stock: '',
+  });
 
-const Form1 = () => {
-  //1st we will check that user ne konse detail fill nhi keya h fir wo 
-  //usse data fill karwaege
-  // useEffect(() => {
-  //   const res
-  
-  //   return () => {
-  //     second
-  //   }
-  // }, [third])
-  
-  const [show, setShow] = useState(false)
-  const handleClick = () => setShow(!show)
+  const [imgUrls, setImgUrls] = useState([]);  
+  const fileInputRef = useRef(null);  
+  const [loading ,setloading] = useState(false)
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const updateData = useRecoilValue(updateAtom);
+
+  const { handleImageChange, imgUrl } = usePreviewImg('');
+
+  useEffect(() => {
+    const update = localStorage.getItem('update');
+    if (!update) {
+      onOpen();
+      setShowUpdatePage(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (imgUrl) {
+      if (imgUrls.length < 5) {  
+        setImgUrls((prevUrls) => [...prevUrls, imgUrl]);  
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; 
+      }
+    }
+  }, [imgUrl]);
+
+  if (showUpdatePage) {
+    return <UpdatePage />;
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setProductDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+    setloading(true)
+    console.log('Product details:', productDetails, 'Images:', imgUrls);
+    try{
+      const res = await fetch('/api/p/product', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...productDetails, pimage: imgUrls }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      console.log(data);
+
+      navigator("/")
+    }
+    catch(e){
+      console.log(e);
+    } finally{
+      setloading(false)
+    }
+  };
+
+  const handleModalClose = () => {
+    onClose();
+  };
+
+  const handleRemoveImage = (index) => {
+    setImgUrls((prevUrls) => prevUrls.filter((_, i) => i !== index));
+  };
+
   return (
     <>
-      <Heading w="100%" textAlign={'center'} fontWeight="normal" mb="2%">
-        User Registration
-      </Heading>
-      <Flex>
-        <FormControl mr="5%">
-          <FormLabel htmlFor="first-name" fontWeight={'normal'}>
-            First name
-          </FormLabel>
-          <Input id="first-name" placeholder="First name" />
-        </FormControl>
+      <Modal isOpen={isOpen} onClose={handleModalClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Update Required</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Box>Please update your profile to proceed.</Box>
+          </ModalBody>
 
-        <FormControl>
-          <FormLabel htmlFor="last-name" fontWeight={'normal'}>
-            Last name
-          </FormLabel>
-          <Input id="last-name" placeholder="First name" />
-        </FormControl>
-      </Flex>
-       
-    </>
-  )
-}
+          <ModalFooter>
+            <Button colorScheme="blue" onClick={() => setShowUpdatePage(true)}>
+              Update Now
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-const Form2 = () => {
-  return (
-    <>
-      <Heading w="100%" textAlign={'center'} fontWeight="normal" mb="2%">
-        User Details
-      </Heading>
-      <FormControl as={GridItem} colSpan={[6, 3]}>
-        <FormLabel
-          htmlFor="country"
-          fontSize="sm"
-          fontWeight="md"
-          color="gray.700"
-          _dark={{
-            color: 'gray.50',
-          }}>
-          Country / Region
-        </FormLabel>
-        <Select
-          id="country"
-          name="country"
-          autoComplete="country"
-          placeholder="Select option"
-          focusBorderColor="brand.400"
-          shadow="sm"
-          size="sm"
-          w="full"
-          rounded="md">
-          <option>United States</option>
-          <option>Canada</option>
-          <option>Mexico</option>
-        </Select>
-      </FormControl>
-
-      <FormControl as={GridItem} colSpan={6}>
-        <FormLabel
-          htmlFor="street_address"
-          fontSize="sm"
-          fontWeight="md"
-          color="gray.700"
-          _dark={{
-            color: 'gray.50',
-          }}
-          mt="2%">
-          Street address
-        </FormLabel>
-        <Input
-          type="text"
-          name="street_address"
-          id="street_address"
-          autoComplete="street-address"
-          focusBorderColor="brand.400"
-          shadow="sm"
-          size="sm"
-          w="full"
-          rounded="md"
-        />
-      </FormControl>
-
-      <FormControl as={GridItem} colSpan={[6, 6, null, 2]}>
-        <FormLabel
-          htmlFor="city"
-          fontSize="sm"
-          fontWeight="md"
-          color="gray.700"
-          _dark={{
-            color: 'gray.50',
-          }}
-          mt="2%">
-          City
-        </FormLabel>
-        <Input
-          type="text"
-          name="city"
-          id="city"
-          autoComplete="city"
-          focusBorderColor="brand.400"
-          shadow="sm"
-          size="sm"
-          w="full"
-          rounded="md"
-        />
-      </FormControl>
-
-      <FormControl as={GridItem} colSpan={[6, 3, null, 2]}>
-        <FormLabel
-          htmlFor="state"
-          fontSize="sm"
-          fontWeight="md"
-          color="gray.700"
-          _dark={{
-            color: 'gray.50',
-          }}
-          mt="2%">
-          State / Province
-        </FormLabel>
-        <Input
-          type="text"
-          name="state"
-          id="state"
-          autoComplete="state"
-          focusBorderColor="brand.400"
-          shadow="sm"
-          size="sm"
-          w="full"
-          rounded="md"
-        />
-      </FormControl>
-
-      <FormControl as={GridItem} colSpan={[6, 3, null, 2]}>
-        <FormLabel
-          htmlFor="postal_code"
-          fontSize="sm"
-          fontWeight="md"
-          color="gray.700"
-          _dark={{
-            color: 'gray.50',
-          }}
-          mt="2%">
-          ZIP / Postal
-        </FormLabel>
-        <Input
-          type="text"
-          name="postal_code"
-          id="postal_code"
-          autoComplete="postal-code"
-          focusBorderColor="brand.400"
-          shadow="sm"
-          size="sm"
-          w="full"
-          rounded="md"
-        />
-      </FormControl>
-    </>
-  )
-}
-
-const Form3 = () => {
-  return (
-    <>
-      <Heading w="100%" textAlign={'center'} fontWeight="normal">
-        Social Handles
-      </Heading>
-      <SimpleGrid columns={1} spacing={6}>
-        <FormControl as={GridItem} colSpan={[3, 2]}>
-          <FormLabel
-            fontSize="sm"
-            fontWeight="md"
-            color="gray.700"
-            _dark={{
-              color: 'gray.50',
-            }}>
-            Website
-          </FormLabel>
-          <InputGroup size="sm">
-            <InputLeftAddon
-              bg="gray.50"
-              _dark={{
-                bg: 'gray.800',
-              }}
-              color="gray.500"
-              rounded="md">
-              http://
-            </InputLeftAddon>
-            <Input
-              type="tel"
-              placeholder="www.example.com"
-              focusBorderColor="brand.400"
-              rounded="md"
-            />
-          </InputGroup>
-        </FormControl>
-
-        <FormControl id="email" mt={1}>
-          <FormLabel
-            fontSize="sm"
-            fontWeight="md"
-            color="gray.700"
-            _dark={{
-              color: 'gray.50',
-            }}>
-            About
-          </FormLabel>
-          <Textarea
-            placeholder="you@example.com"
-            rows={3}
-            shadow="sm"
-            focusBorderColor="brand.400"
-            fontSize={{
-              sm: 'sm',
-            }}
+      <Box as="form" onSubmit={handleSubmit} p={4} borderWidth="1px" borderRadius="lg">
+        <FormControl id="name" mb={4} isRequired>
+          <FormLabel>Product Name</FormLabel>
+          <Input
+            type="text"
+            name="name"
+            value={productDetails.name}
+            onChange={handleInputChange}
+            placeholder="Enter product name"
           />
-          <FormHelperText>
-            Brief description for your profile. URLs are hyperlinked.
-          </FormHelperText>
         </FormControl>
-      </SimpleGrid>
-    </>
-  )
-}
 
-export default function Multistep() {
-  const toast = useToast()
-  const [step, setStep] = useState(1)
-  const [progress, setProgress] = useState(33.33)
+        <FormControl id="images" mb={4} isRequired>
+          <FormLabel>Product Images (up to 5)</FormLabel>
+          <Box display="flex" alignItems="center">
+            <IconButton
+              aria-label="Add Image"
+              icon={<AddIcon />}
+              onClick={() => fileInputRef.current.click()}
+              disabled={imgUrls.length >= 5}  
+            />
+            <Input
+              ref={fileInputRef} 
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImageChange}  
+              display="none" 
+            />
+          </Box>
 
-  return (
-    <>
-      <Box
-        borderWidth="1px"
-        rounded="lg"
-        shadow="1px 1px 3px rgba(0,0,0,0.3)"
-        maxWidth={800}
-        p={6}
-        m="10px auto"
-        as="form">
-        <Progress hasStripe value={progress} mb="5%" mx="5%" isAnimated></Progress>
-        {step === 1 ? <Form1 /> : step === 2 ? <Form2 /> : <Form3 />}
-        <ButtonGroup mt="5%" w="100%">
-          <Flex w="100%" justifyContent="space-between">
-            <Flex>
-              <Button
-                onClick={() => {
-                  setStep(step - 1)
-                  setProgress(progress - 33.33)
-                }}
-                isDisabled={step === 1}
-                // colorScheme="teal"
-                variant="solid"
-                w="7rem"
-                mr="5%">
-                Back
-              </Button>
-              <Button
-                w="7rem"
-                isDisabled={step === 3}
-                onClick={() => {
-                  setStep(step + 1)
-                  if (step === 3) {
-                    setProgress(100)
-                  } else {
-                    setProgress(progress + 33.33)
-                  }
-                }}
-                // colorScheme="teal"
-                variant="outline">
-                Next
-              </Button>
-            </Flex>
-            {step === 3 ? (
-              <Button
-                w="7rem"
-                // colorScheme="red"
-                variant="solid"
-                onClick={() => {
-                  toast({
-                    title: 'Account created.',
-                    description: "We've created your account for you.",
-                    status: 'success',
-                    duration: 3000,
-                    isClosable: true,
-                  })
-                }}>
-                Submit
-              </Button>
-            ) : null}
-          </Flex>
-        </ButtonGroup>
+          {imgUrls.length > 0 && (
+            <Grid templateColumns="repeat(5, 1fr)"  gap={2} mt={4}>
+              {imgUrls.map((url, index) => (
+                <GridItem key={index}>
+                  <Image
+                    w={"10px"}
+                    src={url}
+                    alt={`Preview ${index + 1}`}
+                    boxSize="100px"
+                    objectFit="cover"
+                  />
+                  <Text
+                    color="red.500"
+                    fontSize="sm"
+                    cursor="pointer"
+                    onClick={() => handleRemoveImage(index)}
+                  >
+                    Remove
+                  </Text>
+                </GridItem>
+              ))}
+            </Grid>
+          )}
+        </FormControl>
+
+        <FormControl id="price" mb={4} isRequired>
+          <FormLabel>Price $</FormLabel>
+          <Input
+            type="number"
+            name="price"
+            value={productDetails.price}
+            onChange={handleInputChange}
+            placeholder="Enter product price"
+          />
+        </FormControl>
+
+        <FormControl id="description" mb={4} isRequired>
+          <FormLabel>Description</FormLabel>
+          <Input
+            type="text"
+            name="description"
+            value={productDetails.description}
+            onChange={handleInputChange}
+            placeholder="Enter product description"
+          />
+        </FormControl>
+
+        <FormControl id="stock" mb={4} isRequired>
+          <FormLabel>Stock</FormLabel>
+          <Input
+            type="number"
+            name="stock"
+            value={productDetails.stock}
+            onChange={handleInputChange}
+            placeholder="Enter available stock"
+          />
+        </FormControl>
+
+        <Button colorScheme="blue" type="submit" mt={4} isLoading={loading} onClick={handleSubmit}>
+          Submit
+        </Button>
+
       </Box>
     </>
-  )
+  );
 }
+
+export default ProductCard;

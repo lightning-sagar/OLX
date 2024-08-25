@@ -9,6 +9,8 @@ import AuthPage from "./Pages/AuthPage.jsx"
 import ProductCard from "./component/ProductCard.jsx"
 import UpdatePage from "./Pages/UpdatePage.jsx"
 import updateAtom from "./Atoms/updateAtom.js"
+import ProductPage from "./Pages/ProductPage.jsx"
+import Cart from "./component/Cart.jsx"
 
 function App() {
 
@@ -22,6 +24,7 @@ function App() {
         <Routes>
         <Route path="/" element={user?(
           <>
+            <Cart/>
             <HomePage/>
           </>
         ):
@@ -40,6 +43,7 @@ function App() {
             }
           />
         <Route path="/auth" element={!user?<AuthPage/>:<Navigate to='/' />}/>
+        <Route path="/product/:pid" element={<ProductPage/>}/>
         </Routes>
       </Container>
     </>

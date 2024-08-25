@@ -16,15 +16,11 @@ const productSchema  = mongoose.Schema({
         type:String,
         require:true
     }],
-    pcategory:{
-        type:String,
-        enum:["men","women","kids","electronics","accessories"],
-        require:true
-    },
-    pavaliable:{
-        type:Boolean,
-        default:true
-    },
+    // pcategory:{
+    //     type:String,
+    //     enum:["men","women","kids","electronics","accessories"],
+    //     require:true
+    // },
     pstock:{
         type:Number,
         require:true

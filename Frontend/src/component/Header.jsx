@@ -29,7 +29,7 @@ function Header() {
           <AiFillHome size={24} />
         </Link>
         <Link fontSize={"1.2rem"} as={RouterLink} to="/add/product">
-          Add Project
+          Add Product
         </Link>
       </Flex>
       
