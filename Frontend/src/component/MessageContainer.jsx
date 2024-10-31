@@ -1,13 +1,13 @@
-import { Avatar, Divider, Flex, useColorModeValue, Text, Image, Skeleton, SkeletonCircle } from "@chakra-ui/react";
+import React, { useEffect, useState, useRef } from 'react';
+import { Flex, Avatar, Text, Divider, useColorModeValue, Skeleton, SkeletonCircle } from '@chakra-ui/react';
 import Message from "./Message";
 import MessageInput from "./MessageInput";
-import { useEffect, useRef, useState } from "react";
 import useShowToast from "../hooks/useshowtoast";
 import { ConservationAtom, selectconservationAtom } from "../Atoms/ConservationAtom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../Atoms/userAtom";
 import { useSocket } from "../../Context/SocketContext";
-import messageSound from "../assets/sound/message.mp3"
+import messageSound from "../assets/sound/message.mp3";
 
 function MessageContainer() {
   const showToast = useShowToast();
@@ -18,15 +18,17 @@ function MessageContainer() {
   const { socket } = useSocket();
   const [Conservations, setConservations] = useRecoilState(ConservationAtom);
   const messEndRef = useRef(null);
+  const messageContainerRef = useRef(null); // Ref for the message container
+  const [isUserAtBottom, setIsUserAtBottom] = useState(true); // State to track if the user is at the bottom
 
   useEffect(() => {
     socket.on("newMessage", (data) => {
       if (selectconservation._id === data.conservationId) {
         setMessage((prev) => [...prev, data]);
       }
-      if(!document.hasFocus()){
-        const sound =new Audio(messageSound);
-        sound.play()
+      if (!document.hasFocus()) {
+        const sound = new Audio(messageSound);
+        sound.play();
       }
       setConservations((prev) => {
         const updated = prev.map((conservation) => {
@@ -36,7 +38,7 @@ function MessageContainer() {
               lastMessage: {
                 text: data.text,
                 sender: data.sender,
-              }
+              },
             };
           }
           return conservation;
@@ -48,12 +50,13 @@ function MessageContainer() {
       socket.off("newMessage");
     };
   }, [socket, selectconservation, setConservations]);
+
   useEffect(() => {
     const lastMessageIsFromOtherUser = message.length > 0 && message[message.length - 1].sender._id !== currentuser._id;
     if (lastMessageIsFromOtherUser) {
       socket.emit("markMessageAsSeen", {
         conservationId: selectconservation._id,
-        userId: currentuser._id
+        userId: currentuser._id,
       });
     }
     socket.on("messageSeen", ({ conservationId }) => {
@@ -63,7 +66,7 @@ function MessageContainer() {
             if (!message.seen) {
               return {
                 ...message,
-                seen: true
+                seen: true,
               };
             }
             return message;
@@ -75,8 +78,10 @@ function MessageContainer() {
   }, [socket, currentuser._id, message, selectconservation]);
 
   useEffect(() => {
-    messEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [message]);
+    if (isUserAtBottom) {
+      messEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [message, isUserAtBottom]);
 
   useEffect(() => {
     const getMessage = async () => {
@@ -98,16 +103,33 @@ function MessageContainer() {
     getMessage();
   }, [showToast, selectconservation.userId, selectconservation.mock]);
 
+  // Event handler to check if the user is at the bottom of the chat
+  const handleScroll = () => {
+    if (messageContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
+      setIsUserAtBottom(scrollHeight - scrollTop === clientHeight);
+    }
+  };
+
   return (
     <Flex flex={70} bg={useColorModeValue("gray.200", "gray.dark")} p={1} flexDirection={"column"} borderRadius={"md"}>
       <Flex w={"full"} gap={2} h={12} alignItems={"center"}>
         <Avatar src={selectconservation.pimage} size={"sm"} />
         <Text display={'flex'} alignItems={"center"}>
-          {selectconservation.username} 
+          {selectconservation.username}
         </Text>
       </Flex>
       <Divider />
-      <Flex flexDirection={"column"} p={2} gap={4} my={4} height={"400px"} overflowY={"auto"}>
+      <Flex
+        flexDirection={"column"}
+        p={2}
+        gap={4}
+        my={4}
+        height={"400px"}
+        overflowY={"auto"}
+        ref={messageContainerRef} // Attach ref to the container
+        onScroll={handleScroll} // Handle scroll events
+      >
         {loadingMessage && (
           [...Array(5)].map((_, i) => (
             <Flex key={i} gap={2} alignItems={"center"} alignSelf={i % 2 === 0 ? "flex-end" : "flex-start"} p={"1"} borderRadius={"md"}>

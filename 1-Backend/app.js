@@ -8,6 +8,7 @@ import {app,server } from "./socket/socket.js"
 import { v2 as cloudinary } from "cloudinary";
 import path from "path";
 import messageRoutes from "./route/messageRoutes.js";
+
 dotenv.config();
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
@@ -27,6 +28,7 @@ app.use(cookieParser());
 app.use('/api/user', userRoute);
 app.use('/api/p', productRoute);
 app.use('/api/message',messageRoutes);
+
 
 
 const port = process.env.PORT || 5000;

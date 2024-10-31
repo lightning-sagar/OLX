@@ -3,6 +3,7 @@ import { ChatIcon } from '@chakra-ui/icons';
 import { Box, Button, Flex, Image, Text, Input, IconButton, Spinner, useColorModeValue } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import ChatPage from '../Pages/ChatPage';
+import CustomChatCard from "./CustomChatCard";
 
 function Cart() {
     const [showIcons, setShowIcons] = useState(false);
@@ -127,106 +128,99 @@ function Cart() {
             />
 
             {showCart && (
-                <Box 
-                    position="fixed" 
-                    bottom={{ base: "16", md: "20" }} 
-                    right={{ base: "4", md: "10" }} 
-                    maxW={{ base: "90%", md: "300px" }} 
-                    w="full" 
-                    p={4} 
-                    bg={useColorModeValue('white', 'gray.700')} 
-                    boxShadow="lg" 
-                    borderRadius="md"
-                    overflowY="auto"
-                    maxH="calc(100vh - 150px)"  
-                >
-                    <Flex justify="space-between" align="center" mb={4}>
-                        <Text fontWeight="bold">Cart Details</Text>
+            <Box 
+                position="fixed" 
+                bottom={{ base: "16", md: "20" }} 
+                right={{ base: "4", md: "10" }} 
+                maxW={{ base: "90%", md: "300px" }} 
+                w="full" 
+                p={4} 
+                bg={useColorModeValue('white', 'gray.700')} 
+                boxShadow="lg" 
+                borderRadius="md"
+                overflowY="auto"
+                maxH="calc(100vh - 150px)"  
+            >
+                <Flex justify="space-between" align="center" mb={4}>
+                <Text fontWeight="bold">Cart Details</Text>
+                <IconButton
+                    icon={<AiOutlineClose />}
+                    size="sm"
+                    onClick={toggleCart}
+                    aria-label="Close cart"
+                    variant="ghost"
+                />
+                </Flex>
+                {loading ? (
+                <Spinner />
+                ) : productDetails.length > 0 ? (
+                <>
+                    {productDetails.map((item, index) => (
+                    <Box 
+                        key={index} 
+                        mb={4} 
+                        p={3} 
+                        border="1px" 
+                        borderRadius="md" 
+                        borderColor={useColorModeValue('gray.200', 'gray.600')}
+                    >
+                        <Flex justify="space-between" align="center">
+                        <Image src={item.pimage[0]} alt={item.pname} boxSize="50px" objectFit="cover" />
                         <IconButton
                             icon={<AiOutlineClose />}
                             size="sm"
-                            onClick={toggleCart}
-                            aria-label="Close cart"
+                            onClick={() => handleDeleteProduct(item.product)}
+                            aria-label="Delete product"
                             variant="ghost"
                         />
-                    </Flex>
-                    {loading ? (
-                        <Spinner />
-                    ) : productDetails.length > 0 ? (
-                        productDetails.map((item, index) => (
-                            <Box 
-                                key={index} 
-                                mb={4} 
-                                p={3} 
-                                border="1px" 
-                                borderRadius="md" 
-                                borderColor={useColorModeValue('gray.200', 'gray.600')}
-                            >
-                                <Flex justify="space-between" align="center">
-                                    <Image src={item.pimage[0]} alt={item.pname} boxSize="50px" objectFit="cover" />
-                                    <IconButton
-                                        icon={<AiOutlineClose />}
-                                        size="sm"
-                                        onClick={() => handleDeleteProduct(item.product)}
-                                        aria-label="Delete product"
-                                        variant="ghost"
-                                    />
-                                </Flex>
-                                <Text fontWeight="bold" mt={2}>{item.pname}</Text>
-                                <Text>Price: ${item.pprice}</Text>
-                                <Flex align="center" mt={2}>
-                                    <Text>Quantity:</Text>
-                                    <Input
-                                        type="number"
-                                        value={item.quantity}
-                                        min="1"
-                                        max={item.pstock}
-                                        onChange={(e) => handleQuantityChange(item.product, e.target.value)}
-                                        width="60px"
-                                        ml={2}
-                                    />
-                                </Flex>
-                                <Text mt={2}>Total: ${item.price * item.quantity}</Text>
-                            </Box>
-                        ))
-                    ) : (
-                        <Text>No items in cart</Text>
-                    )}
-                    <Box mt={4} borderTop="1px solid" borderColor={useColorModeValue('gray.200', 'gray.600')} pt={2}>
-                        <Text fontWeight="bold">Total Price: ${calculateTotalPrice()}</Text>
+                        </Flex>
+                        <Text fontWeight="bold" mt={2}>{item.pname}</Text>
+                        <Text>Price: ${item.pprice}</Text>
+                        <Flex align="center" mt={2}>
+                        <Text>Quantity:</Text>
+                        <Input
+                            type="number"
+                            value={item.quantity}
+                            min="1"
+                            max={item.pstock}
+                            onChange={(e) => handleQuantityChange(item.product, e.target.value)}
+                            width="60px"
+                            ml={2}
+                        />
+                        </Flex>
+                        <Text mt={2}>Total: ${item.price * item.quantity}</Text>
                     </Box>
-                </Box>
+                    ))}
+                    <Box 
+                    position="fixed" 
+                    bottom={{ base: "16", md: "20" }} 
+                    maxW={{ base: "100%", md: "100%" }}
+                    maxH="calc(100vh - 150px)"  
+                    p={4} 
+                    bg={useColorModeValue('white', 'gray.700')} 
+                    borderRadius="md"
+                    overflowY="auto"
+                    >
+                    <Flex justify="space-between" align="center">
+                        <Text fontWeight="bold">Total Price: ${calculateTotalPrice()}&nbsp;&nbsp;</Text>
+                        <Button colorScheme="blue" onClick={() => alert('Proceeding to buy')}>
+                        Buy
+                        </Button>
+                    </Flex>
+                    </Box>
+                </>
+                ) : (
+                <Text>No items in cart</Text>
+                )}
+            </Box>
             )}
 
-            {showChat && (
-                <Box 
-                    position="fixed" 
-                    bottom={{ base: "16", md: "20" }} 
-                    right={{ base: "4", md: "10" }} 
-                    maxW={{ base: "90%", md: "400px" }} 
-                    w="full" 
-                    p={4} 
-                    bg={useColorModeValue('white', 'gray.700')} 
-                    boxShadow="lg" 
-                    borderRadius="md"
-                    overflowY="auto"
-                    h="400px"  
-                >
-                    <Flex justify="space-between" align="center" mb={4}>
-                        <Text fontWeight="bold">Chat</Text>
-                        <IconButton
-                            icon={<AiOutlineClose />}
-                            size="sm"
-                            onClick={toggleChat}
-                            aria-label="Close chat"
-                            variant="ghost"
-                        />
-                    </Flex>
-                    <ChatPage />
-                </Box>
-            )}
-        </Flex>
-    );
+
+        {showChat && (
+            <CustomChatCard onClose={toggleChat} />  
+        )}
+    </Flex>
+  );
 }
 
 export default Cart;

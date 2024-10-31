@@ -5,7 +5,7 @@ import {
   FormControl,
   FormLabel,
   Input,
-  Text,
+  Textarea,
   Image,
   Modal,
   ModalBody,
@@ -18,13 +18,17 @@ import {
   Grid,
   GridItem,
   IconButton,
+  Text,
+  VStack,
+  HStack,
+  Heading,
+  Skeleton,
 } from '@chakra-ui/react';
-import { AddIcon } from '@chakra-ui/icons';
+import { AddIcon, ArrowUpIcon, ArrowDownIcon, CloseIcon } from '@chakra-ui/icons';
 import { useRecoilValue } from 'recoil';
 import updateAtom from '../Atoms/updateAtom';
 import usePreviewImg from '../hooks/usePrevImg';
 import UpdatePage from '../Pages/UpdatePage';
-import { Navigate } from 'react-router-dom';
 
 function ProductCard() {
   const [showUpdatePage, setShowUpdatePage] = useState(false);
@@ -34,14 +38,17 @@ function ProductCard() {
     description: '',
     stock: '',
   });
-
-  const [imgUrls, setImgUrls] = useState([]);  
-  const fileInputRef = useRef(null);  
-  const [loading ,setloading] = useState(false)
+  const [imgUrls, setImgUrls] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); 
+  const fileInputRef = useRef(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const updateData = useRecoilValue(updateAtom);
-
   const { handleImageChange, imgUrl } = usePreviewImg('');
+
+  useEffect(() => {
+    setTimeout(() => setIsLoading(false), 1000); 
+  }, []);
 
   useEffect(() => {
     const update = localStorage.getItem('update');
@@ -53,11 +60,11 @@ function ProductCard() {
 
   useEffect(() => {
     if (imgUrl) {
-      if (imgUrls.length < 5) {  
-        setImgUrls((prevUrls) => [...prevUrls, imgUrl]);  
+      if (imgUrls.length < 5) {
+        setImgUrls((prevUrls) => [...prevUrls, imgUrl]);
       }
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''; 
+        fileInputRef.current.value = '';
       }
     }
   }, [imgUrl]);
@@ -74,11 +81,11 @@ function ProductCard() {
     }));
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setloading(true)
+    setLoading(true);
     console.log('Product details:', productDetails, 'Images:', imgUrls);
-    try{
+    try {
       const res = await fetch('/api/p/product', {
         method: 'POST',
         headers: {
@@ -89,13 +96,11 @@ function ProductCard() {
       });
       const data = await res.json();
       console.log(data);
-
-      Navigate("/")
-    }
-    catch(e){
+      Navigate('/');
+    } catch (e) {
       console.log(e);
-    } finally{
-      setloading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,7 +111,21 @@ function ProductCard() {
   const handleRemoveImage = (index) => {
     setImgUrls((prevUrls) => prevUrls.filter((_, i) => i !== index));
   };
-  console.log(imgUrls,"imgUrls")
+
+  const moveImageUp = (index) => {
+    if (index === 0) return;
+    const newUrls = [...imgUrls];
+    [newUrls[index], newUrls[index - 1]] = [newUrls[index - 1], newUrls[index]];
+    setImgUrls(newUrls);
+  };
+
+  const moveImageDown = (index) => {
+    if (index === imgUrls.length - 1) return;
+    const newUrls = [...imgUrls];
+    [newUrls[index], newUrls[index + 1]] = [newUrls[index + 1], newUrls[index]];
+    setImgUrls(newUrls);
+  };
+
   return (
     <>
       <Modal isOpen={isOpen} onClose={handleModalClose}>
@@ -115,9 +134,8 @@ function ProductCard() {
           <ModalHeader>Update Required</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Box>Please update your profile to proceed.</Box>
+            <Text>Please update your profile to proceed.</Text>
           </ModalBody>
-
           <ModalFooter>
             <Button colorScheme="blue" onClick={() => setShowUpdatePage(true)}>
               Update Now
@@ -126,99 +144,146 @@ function ProductCard() {
         </ModalContent>
       </Modal>
 
-      <Box as="form" onSubmit={handleSubmit} p={4} borderWidth="1px" borderRadius="lg">
-        <FormControl id="name" mb={4} isRequired>
-          <FormLabel>Product Name</FormLabel>
-          <Input
-            type="text"
-            name="name"
-            value={productDetails.name}
-            onChange={handleInputChange}
-            placeholder="Enter product name"
-          />
-        </FormControl>
+      <Box as="form" onSubmit={handleSubmit} p={8} borderWidth="1px" borderRadius="lg" boxShadow="md">
+        <VStack spacing={4} align="stretch">
+          <Heading as="h3" size="lg" mb={4} textAlign="center">
+            Add New Product
+          </Heading>
 
-        <FormControl id="images" mb={4} isRequired>
-          <FormLabel>Product Images (up to 5)</FormLabel>
-          <Box display="flex" alignItems="center">
-            <IconButton
-              aria-label="Add Image"
-              icon={<AddIcon />}
-              onClick={() => fileInputRef.current.click()}
-              disabled={imgUrls.length >= 5}  
-            />
+          <FormControl id="name" isRequired>
+            <FormLabel>Product Name</FormLabel>
             <Input
-              ref={fileInputRef} 
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleImageChange}  
-              display="none" 
+              type="text"
+              name="name"
+              value={productDetails.name}
+              onChange={handleInputChange}
+              placeholder="Enter product name"
+              size="lg"
             />
-          </Box>
+          </FormControl>
 
-          {imgUrls.length > 0 && (
-            <Grid templateColumns="repeat(5, 1fr)"  gap={2} mt={4}>
-              {imgUrls.map((url, index) => (
-                <GridItem key={index}>
-                  <Image
-                    w={"10px"}
-                    src={url}
-                    alt={`Preview ${index + 1}`}
-                    boxSize="100px"
-                    objectFit="cover"
-                  />
-                  <Text
-                    color="red.500"
-                    fontSize="sm"
-                    cursor="pointer"
-                    onClick={() => handleRemoveImage(index)}
-                  >
-                    Remove
-                  </Text>
-                </GridItem>
-              ))}
-            </Grid>
-          )}
-        </FormControl>
+          <FormControl id="images" isRequired>
+            <FormLabel>Product Images (up to 5)</FormLabel>
+            <HStack>
+              <IconButton
+                aria-label="Add Image"
+                icon={<AddIcon />}
+                onClick={() => fileInputRef.current.click()}
+                disabled={imgUrls.length >= 5}
+                size="lg"
+                colorScheme="teal"
+              />
+              <Input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageChange}
+                display="none"
+              />
+            </HStack>
 
-        <FormControl id="price" mb={4} isRequired>
-          <FormLabel>Price $</FormLabel>
-          <Input
-            type="number"
-            name="price"
-            value={productDetails.price}
-            onChange={handleInputChange}
-            placeholder="Enter product price"
-          />
-        </FormControl>
+            {isLoading ? (
+              <Grid templateColumns="repeat(5, 1fr)" gap={4} mt={4}>
+                {Array(5)
+                  .fill('')
+                  .map((_, index) => (
+                    <Skeleton key={index} height="100px" borderRadius="md" />
+                  ))}
+              </Grid>
+            ) : (
+              imgUrls.length > 0 && (
+                <Grid templateColumns="repeat(5, 1fr)" gap={4} mt={4}>
+                  {imgUrls.map((url, index) => (
+                    <GridItem key={url} position="relative">
+                      <Image
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        boxSize="120px"
+                        objectFit="cover"
+                        borderRadius="md"
+                        boxShadow="sm"
+                        transition="transform 0.2s"
+                        _hover={{ transform: 'scale(1.05)' }}
+                      />
+                      <Box position="absolute" top={1} right={1}>
+                        <IconButton
+                          icon={<CloseIcon />}
+                          size="sm"
+                          colorScheme="red"
+                          onClick={() => handleRemoveImage(index)}
+                        />
+                      </Box>
+                      <HStack position="absolute" bottom={1} left={1} spacing={1}>
+                        <IconButton
+                          aria-label="Move Up"
+                          icon={<ArrowUpIcon />}
+                          size="sm"
+                          onClick={() => moveImageUp(index)}
+                          isDisabled={index === 0}
+                          bg="rgba(0, 0, 0, 0.6)"
+                          color="white"
+                          _hover={{ bg: 'rgba(0, 0, 0, 0.8)' }}
+                        />
+                        <IconButton
+                          aria-label="Move Down"
+                          icon={<ArrowDownIcon />}
+                          size="sm"
+                          onClick={() => moveImageDown(index)}
+                          isDisabled={index === imgUrls.length - 1}
+                          bg="rgba(0, 0, 0, 0.6)"
+                          color="white"
+                          _hover={{ bg: 'rgba(0, 0, 0, 0.8)' }}
+                        />
+                      </HStack>
+                    </GridItem>
+                  ))}
+                </Grid>
+              )
+            )}
+          </FormControl>
 
-        <FormControl id="description" mb={4} isRequired>
-          <FormLabel>Description</FormLabel>
-          <Input
-            type="text"
-            name="description"
-            value={productDetails.description}
-            onChange={handleInputChange}
-            placeholder="Enter product description"
-          />
-        </FormControl>
+          <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+            <FormControl id="price" isRequired>
+              <FormLabel>Price $</FormLabel>
+              <Input
+                type="number"
+                name="price"
+                value={productDetails.price}
+                onChange={handleInputChange}
+                placeholder="Enter product price"
+                size="lg"
+              />
+            </FormControl>
 
-        <FormControl id="stock" mb={4} isRequired>
-          <FormLabel>Stock</FormLabel>
-          <Input
-            type="number"
-            name="stock"
-            value={productDetails.stock}
-            onChange={handleInputChange}
-            placeholder="Enter available stock"
-          />
-        </FormControl>
+            <FormControl id="stock" isRequired>
+              <FormLabel>Stock</FormLabel>
+              <Input
+                type="number"
+                name="stock"
+                value={productDetails.stock}
+                onChange={handleInputChange}
+                placeholder="Enter available stock"
+                size="lg"
+              />
+            </FormControl>
+          </Grid>
 
-        <Button colorScheme="blue" type="submit" mt={4} isLoading={loading} onClick={handleSubmit}>
-          Submit
-        </Button>
+          <FormControl id="description" isRequired>
+            <FormLabel>Description</FormLabel>
+            <Textarea
+              name="description"
+              value={productDetails.description}
+              onChange={handleInputChange}
+              placeholder="Enter product description"
+              size="lg"
+            />
+          </FormControl>
 
+          <Button colorScheme="blue" type="submit" mt={4} isLoading={loading} size="lg">
+            Submit
+          </Button>
+        </VStack>
       </Box>
     </>
   );

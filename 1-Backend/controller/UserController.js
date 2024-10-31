@@ -66,12 +66,9 @@ const loginController = async (req, res) => {
             return res.status(401).json({ err: "Invalid credentials" });
         }
         generateCookie(user._id, res);
-        return res.status(200).json({
-            _id: user._id,
-            name: user.fname,
-            email: user.email,
-            username: user.username
-        });
+        return res.status(200).json(
+            user
+        );
 
     } catch (err) {
         console.error(err);

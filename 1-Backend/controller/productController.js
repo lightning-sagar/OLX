@@ -228,5 +228,27 @@ const deleteProductFromCart = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 }
+const GetUserProduct = async (req, res) => {
+    try {
+        console.log("working")
+        const userId = req.params.UserId;
+        console.log(userId)
 
-export {postProduct,getAllProduct,cartRoute,getSpecificProduct,GetCart,deleteProductFromCart}
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid User ID' });
+        }
+
+        const userProduct = await Product.find({ owner: userId });
+
+        if(!userProduct){
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).json(userProduct);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+export {postProduct,getAllProduct,cartRoute,getSpecificProduct,GetUserProduct,GetCart,deleteProductFromCart}

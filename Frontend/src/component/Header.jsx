@@ -2,19 +2,22 @@ import { BiChat } from "react-icons/bi";
 import { CgDarkMode } from "react-icons/cg"; 
 import { AiFillHome } from "react-icons/ai"; 
 import { IoMdLogOut } from "react-icons/io"; 
-import { Flex, Image, Link, useColorMode, Input, Spacer } from '@chakra-ui/react'
+import { Flex, Image, Link, useColorMode, Input, Spacer, Avatar, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react'
 import { Link as RouterLink } from "react-router-dom" 
-import React from 'react'
+import React, { useState } from 'react'
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../Atoms/userAtom.js"
 import authScreenAtom from "../Atoms/AuthAtom.js";
 import uselogout from "../hooks/logout.jsx";
+import updateAtom from "../Atoms/updateAtom.js";
 
 function Header() {
   const logout = uselogout();
   const user = useRecoilValue(userAtom);
+  const update = useRecoilValue(updateAtom);
   const SetAuthScreen = useSetRecoilState(authScreenAtom);
   const { colorMode, toggleColorMode } = useColorMode();
+  const [loadImg, setLoadImg] = useState(true);
 
   return (
     <Flex 
@@ -33,7 +36,7 @@ function Header() {
           Add Product
         </Link>
         <Link as={RouterLink} to="/chat" ml={4}>
-        <BiChat />
+          <BiChat />
         </Link>
       </Flex>
       
@@ -53,8 +56,19 @@ function Header() {
           mr={4}
         />
         
-        {user ? (
-          <IoMdLogOut ml={4} size={24} cursor="pointer" onClick={logout}/>
+        {user  ? (
+          <Menu>
+            
+            <MenuButton as={Avatar} size="sm" cursor="pointer"src={user.pimage||""} ml={4} />
+            <MenuList>
+              <MenuItem as={RouterLink} to={`/Profile/${user._id}`}>
+                Dashboard
+              </MenuItem>
+              <MenuItem onClick={logout}>
+                Logout
+              </MenuItem>
+            </MenuList>
+          </Menu>
         ) : (
           <Link ml={4} as={RouterLink} to={'/auth'} onClick={() => SetAuthScreen('login')} fontSize={"1.2rem"} >
             Sign-in

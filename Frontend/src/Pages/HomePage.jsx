@@ -1,6 +1,6 @@
 import { CgSpinnerTwo } from "react-icons/cg"; 
 import { AiFillRightCircle } from "react-icons/ai"; 
-import { Box, Flex, Button, Stack, Grid, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Flex, Button, Stack, Grid, useBreakpointValue, Skeleton, SkeletonText, Text } from '@chakra-ui/react';
 import Card from '../component/Card.jsx';
 import { useEffect, useState } from 'react';
 import productAtom from "../Atoms/productAtom.js";
@@ -46,66 +46,94 @@ function HomePage() {
   const [isAllCat, setIsAllCat] = useState(true);
   const categories = allCategories.slice(0, 7);
   const moreCategories = allCategories.slice(7);
-  const columns = useBreakpointValue({ base: 1, sm: 2, md: 3, lg: 4, xl: 5 });
+  const columns = useBreakpointValue({ base: 2, sm: 2, md: 3, lg: 4, xl: 5 });
 
   return (
-    <Box p={6}>
+    <Box p={{ base: 4, md: 6 }} maxW="1200px" mx="auto">
       <Flex
-        mb={6}
+        mb={8}
         flexDirection={{ base: 'column', md: 'row' }}
         alignItems="center"
-        justifyContent="center"
+        justifyContent="space-between"
         wrap="wrap"
       >
-        {isAllCat ? (
-          <>
-            {categories.map((category) => (
-              <Button
-                key={category}
-                mx={2}
-                mb={2}
-                onClick={() => setSelectedCategory(category)}
-                colorScheme={selectedCategory === category ? 'teal' : 'gray'}
-              >
-                {category}
+        <Text fontSize="2xl" fontWeight="bold" mb={{ base: 4, md: 0 }}>
+          Categories
+        </Text>
+
+        <Flex
+          flexWrap="wrap"
+          justifyContent={{ base: 'center', md: 'flex-end' }}
+          alignItems="center"
+        >
+          {isAllCat ? (
+            <>
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  mx={1}
+                  my={2}
+                  onClick={() => setSelectedCategory(category)}
+                  variant="solid"
+                  colorScheme={selectedCategory === category ? 'teal' : 'gray'}
+                  _hover={{ transform: 'scale(1.05)', boxShadow: 'md' }}
+                  size="sm"
+                >
+                  {category}
+                </Button>
+              ))}
+              <AiFillRightCircle
+                style={{ fontSize: '24px', marginLeft: '16px', cursor: 'pointer' }}
+                onClick={() => setIsAllCat(false)}
+              />
+            </>
+          ) : (
+            <>
+              {moreCategories.map((category) => (
+                <Button
+                  key={category}
+                  mx={1}
+                  my={2}
+                  onClick={() => setSelectedCategory(category)}
+                  variant="solid"
+                  colorScheme={selectedCategory === category ? 'teal' : 'gray'}
+                  _hover={{ transform: 'scale(1.05)', boxShadow: 'md' }}
+                  size="sm"
+                >
+                  {category}
+                </Button>
+              ))}
+              <Button onClick={() => setIsAllCat(true)} colorScheme='teal' size="sm">
+                Show Less
               </Button>
-            ))}
-            <AiFillRightCircle
-              style={{ fontSize: '24px', marginLeft: '16px', cursor: 'pointer' }}
-              onClick={() => setIsAllCat(false)}
-            />
-          </>
-        ) : (
-          <>
-            {moreCategories.map((category) => (
-              <Button
-                key={category}
-                mx={2}
-                mb={2}
-                onClick={() => setSelectedCategory(category)}
-                colorScheme={selectedCategory === category ? 'teal' : 'gray'}
-              >
-                {category}
-              </Button>
-            ))}
-            <Button onClick={() => setIsAllCat(true)} colorScheme='teal'>
-              Show Less
-            </Button>
-          </>
-        )}
+            </>
+          )}
+        </Flex>
       </Flex>
 
-      <Stack spacing={4}>
+      <Stack spacing={6}>
         {loading ? (
-          <Box textAlign="center">Loading...</Box>
+          <Grid
+            templateColumns={`repeat(${columns}, 1fr)`}
+            gap={6}
+            justifyContent="center"
+          >
+            {Array.from({ length: columns * 2 }).map((_, index) => (
+              <Box key={index} p={4} borderWidth="1px" borderRadius="lg" boxShadow="md">
+                <Skeleton height="200px" />
+                <SkeletonText mt="4" noOfLines={4} spacing="4" />
+              </Box>
+            ))}
+          </Grid>
         ) : (
           <Grid
             templateColumns={`repeat(${columns}, 1fr)`}
-            gap={5}
+            gap={6}
             justifyContent="center"
           >
-            {products && products.map((product) => (
-              <Card key={product._id} product={product} />
+            {products && products
+              .map((product) => (
+                <Card key={product._id} product={product} />
             ))}
           </Grid>
         )}
