@@ -15,7 +15,7 @@ function HomePage() {
   ];
 
   const [products, setProducts] = useRecoilState(productAtom);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
 
   useEffect(() => {
     const loadProducts = async () => {
