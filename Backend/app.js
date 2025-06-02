@@ -28,7 +28,13 @@ app.use(cookieParser());
 app.use('/api/user', userRoute);
 app.use('/api/p', productRoute);
 app.use('/api/message',messageRoutes);
+if(process.env.NODE_ENV === 'production'){
+    app.use(express.static(path.join(_dirname, '/Frontend/dist')));
 
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(_dirname, 'Frontend', 'dist', 'index.html'));
+    })
+}
 
 
 const port = process.env.PORT || 5000;
